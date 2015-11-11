@@ -186,5 +186,44 @@ class TestNumPyFileReader(unittest.TestCase):
                                             "not equal for stride=%i"
                                             " and lag=%i" % (stride, lag))
 
+    def test_usecols_setter(self):
+        reader = NumPyFileReader(self.files2d, )
+        np.testing.assert_equal(reader.usecols, [0,1,2])
+        # Change the usecols
+        reader.usecols = [-1] 
+        np.testing.assert_equal(reader.usecols, [-1])
+        np.testing.assert_equal(reader.dimension(),1)
+        
+
+    def test_usecols_setter_with_data(self):
+        reader = NumPyFileReader(self.files2d, usecols=[1])
+        print(reader.trajectory_lengths())
+        strides = [2, 3, 5, 7, 15]
+        lags = [1, 3, 7, 10, 30]
+        for stride in strides:
+            for lag in lags:
+                chunks = {i: [] for i in range(reader.number_of_trajectories())}
+                for itraj, _, Y in reader.iterator(stride, lag):
+                    chunks[itraj].append(Y)
+
+                for i, k in enumerate(chunks.values()):
+                    stack = np.vstack(k)
+                    d = np.load(self.files2d[i])[:,reader._usecols]
+                    np.testing.assert_equal(stack, d[lag::stride],
+                                            "not equal for stride=%i"
+                                            " and lag=%i" % (stride, lag))
+                # Now we update the reader's columns via the setter
+                reader.usecols = [-1]
+                chunks = {i: [] for i in range(reader.number_of_trajectories())}
+                for itraj, _, Y in reader.iterator(stride, lag):
+                    chunks[itraj].append(Y)
+
+                for i, k in enumerate(chunks.values()):
+                    stack = np.vstack(k)
+                    d = np.load(self.files2d[i])[:,reader._usecols]
+                    np.testing.assert_equal(stack, d[lag::stride],
+                                            "not equal for stride=%i"
+                                            " and lag=%i" % (stride, lag))
+
 if __name__ == "__main__":
     unittest.main()
