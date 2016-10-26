@@ -29,6 +29,7 @@ from pyemma.coordinates.data.util.reader_utils import (copy_traj_attributes as _
                                                        preallocate_empty_trajectory as _preallocate_empty_trajectory,
                                                        enforce_top as _enforce_top)
 
+from pyemma._base.progress import ProgressReporter as PR
 __all__ = ['frames_from_files']
 
 log = getLogger(__name__)
@@ -131,7 +132,15 @@ def frames_from_files(files, top, frames, chunksize=1000, stride=1, verbose=Fals
     try:
         it = reader.iterator(chunk=chunksize, stride=sorted_inds, return_trajindex=False)
         with it:
-            collected_frames = [f for f in it]
+            #collected_frames = [f for f in it]
+            ProgRep = PR()
+            ProgRep._progress_register(it._n_chunks, description="Fetching frames ")
+            collected_frames = []
+            append = collected_frames.append
+            for f in it:
+                append(f)
+                ProgRep._progress_update(1)
+
         dest = _preallocate_empty_trajectory(top, len(frames))
         t = 0
         for chunk in collected_frames:
