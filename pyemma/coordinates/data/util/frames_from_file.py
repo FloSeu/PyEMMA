@@ -134,7 +134,7 @@ def frames_from_files(files, top, frames, chunksize=1000, stride=1, verbose=Fals
         with it:
             #collected_frames = [f for f in it]
             ProgRep = PR()
-            ProgRep._progress_register(it._n_chunks, description="Fetching frames ")
+            ProgRep._progress_register(it.n_chunks, description="Fetching frames ")
             collected_frames = []
             append = collected_frames.append
             for f in it:
